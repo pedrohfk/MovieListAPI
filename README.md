@@ -5,6 +5,7 @@ Funcionalidades
 
 Como Baixar:
 
+git clone https://github.com/pedrohfk/MovieListAPI.git
 
 Como Executar:
 
