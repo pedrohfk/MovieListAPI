@@ -3,7 +3,9 @@ Cliente (Back-End)
 
 Funcionalidades
 
-Como Baixar:
+Instruções:
+
+Abra um terminal com o Windows PowerShell ou Git Bash, execute o comando abaixo:
 
 git clone https://github.com/pedrohfk/MovieListAPI.git
 
