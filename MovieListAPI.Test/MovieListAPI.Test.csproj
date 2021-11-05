@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MovieList.Core\MovieList.Core.csproj" />
     <ProjectReference Include="..\MovieList.Persistencia\MovieList.Persistencia.csproj" />
+    <ProjectReference Include="..\MovieListAPI\MovieListAPI.csproj" />
   </ItemGroup>
 
 </Project>

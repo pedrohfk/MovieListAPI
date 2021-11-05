@@ -1,4 +1,5 @@
-﻿using MovieList.Core.MovieList;
+﻿using MovieList.Core.Init;
+using MovieList.Core.MovieList;
 using MovieList.Core.MovieList.ListMovieList.Handlers.Queries;
 using MovieList.Core.MovieList.ListWinnerMovieList.Queries;
 using MovieList.Domain.Entities.IntervaloPremio;
@@ -50,7 +51,7 @@ namespace MovieListAPI.Test
 
             var query = new MovieListCommand();
 
-            var request = new MovieListHandler(TestConfig.DbContext);
+            var request = new MovieListHandler(TestConfig.DbContexts);
 
             var result = await request.Handle(query, CancellationToken.None);
 
@@ -62,7 +63,7 @@ namespace MovieListAPI.Test
         {
             var query = new ListMovieCommand();
 
-            var request = new ListMovieHandler(TestConfig.DbContext, TestConfig.Mapper);
+            var request = new ListMovieHandler(TestConfig.DbContexts, TestConfig.Mapper);
 
             var result = await request.Handle(query, CancellationToken.None);
 
@@ -74,7 +75,7 @@ namespace MovieListAPI.Test
         {
             var query = new ListWinnerMovieListCommand();
 
-            var request = new ListWinnerMovieListHandler(TestConfig.DbContext, TestConfig.Mapper);
+            var request = new ListWinnerMovieListHandler(TestConfig.DbContexts, TestConfig.Mapper);
 
             var qtdExptectd = 42;
             var result = await request.Handle(query, CancellationToken.None);

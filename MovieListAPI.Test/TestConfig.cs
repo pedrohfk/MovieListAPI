@@ -2,28 +2,33 @@ using AutoMapper;
 using CsvHelper;
 using CsvHelper.Configuration;
 using MediatR;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using MovieList.Core.AutoMapper;
+using MovieList.Core.Init;
 using MovieList.Persistencia;
+using MovieListAPI.Database;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace MovieListAPI.Test
 {
     public class TestConfig : IDisposable
     {
-        public DbContextPersistencia DbContext { get; private set; }
+        public DbContextPersistencia DbContexts { get; private set; }
         public IMediator Mediator { get; private set; }
         public IMapper Mapper { get; private set; }
         public IServiceCollection services { get; set; }
-
+        private readonly SqliteConnection _connection;
         public IConfiguration configuration { get; set; }
+        private const string InMemoryConnectionString = "DataSource=:memory:";
 
         public TestConfig()
         {
@@ -36,48 +41,23 @@ namespace MovieListAPI.Test
 
             Mapper = mapperConfig.CreateMapper();
 
-            services.AddDbContext<DbContextPersistencia>(options => options.UseSqlite(configuration.GetConnectionString("SqlLiteConnection")));
 
+            _connection = new SqliteConnection(InMemoryConnectionString);
+            _connection.Open();
             var options = new DbContextOptionsBuilder<DbContextPersistencia>()
-                .UseSqlite(Guid.NewGuid().ToString())
-                .Options;
+                    .UseSqlite(_connection)
+                    .Options;
+            DbContexts = new DbContextPersistencia(options);
+            DbContexts.Database.EnsureCreated();
 
-            DbContext = new DbContextPersistencia(options);
-
-            try
-            {
-                var CurrentDirectory = Path.GetFullPath(".");
-
-                var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-                {
-                    PrepareHeaderForMatch = args => args.Header.ToLower(),
-                    Delimiter = ";"
-                };
-                using (var reader = new StreamReader(@$"{CurrentDirectory}\File\movielist.csv"))
-                using (var csv = new CsvReader(reader, config))
-                {
-                    csv.Read();
-                    csv.ReadHeader();
-                    var records = csv.GetRecords<MovieList.Domain.Entities.MovieList>();
-
-                    List<MovieList.Domain.Entities.MovieList> movies = csv.GetRecords<MovieList.Domain.Entities.MovieList>().ToList();
-
-                    DbContext.MovieList.AddRange(movies);
-                    DbContext.SaveChanges();
-                }
-            }
-            catch (System.Exception e)
-            {
-
-                throw;
-            }
-
+            var result = new InitHandler(DbContexts).Handle(new Init(), CancellationToken.None);
         }
 
         public void Dispose()
         {
-            DbContext.Database.EnsureDeleted();
-            DbContext.Dispose();
+            //DbContext.Database.EnsureDeleted();
+            //DbContext.Dispose();
+            _connection.Close();
         }
 
     }
