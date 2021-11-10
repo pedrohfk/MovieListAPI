@@ -1,5 +1,4 @@
-﻿using MovieList.Core.Init;
-using MovieList.Core.MovieList;
+﻿using MovieList.Core.MovieList;
 using MovieList.Core.MovieList.ListMovieList.Handlers.Queries;
 using MovieList.Core.MovieList.ListWinnerMovieList.Queries;
 using MovieList.Domain.Entities.IntervaloPremio;

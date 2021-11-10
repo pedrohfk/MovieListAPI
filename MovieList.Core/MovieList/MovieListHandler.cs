@@ -1,10 +1,9 @@
-﻿using AutoMapper;
-using MediatR;
+﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using MovieList.Domain.Entities.IntervaloPremio;
 using MovieList.Persistencia;
+using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,7 +45,7 @@ namespace MovieList.Core.MovieList
 
 
             var produtorMaiorIntervaloEntreDoisPremios = await contextDb.Max.FromSqlRaw(
-                "CREATE TEMP TABLE MAX AS " +
+               "CREATE TEMP TABLE MAX AS " +
                 "SELECT MAX(id) AS id, " +
                 "       MAX(ml.producers) AS producer, " +
                 "       MAX(ml.year) - MIN(ml.year) AS interval, " +
@@ -58,6 +57,7 @@ namespace MovieList.Core.MovieList
                 "SELECT * FROM TEMP.MAX WHERE interval = (SELECT MAX(interval) FROM TEMP.MAX)" +
                 "").ToListAsync();
 
+
             List<ViewModel.MovieList.IntervaloPremio.Max> max = produtorMaiorIntervaloEntreDoisPremios.ConvertAll(i => new ViewModel.MovieList.IntervaloPremio.Max
             {
                 id = i.id,
@@ -66,6 +66,7 @@ namespace MovieList.Core.MovieList
                 previousWin = i.previousWin,
                 followingWin = i.followingWin
             });
+        
 
             var result = new ViewModel.MovieList.IntervaloPremio.Main
             {

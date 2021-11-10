@@ -12,11 +12,6 @@ namespace MovieList.Core.ViewModel.MovieList.IntervaloPremio
         public virtual ICollection<Max> max
         {
             get; set;
-        }
-
-        public static implicit operator Main(Domain.Entities.IntervaloPremio.Main v)
-        {
-            throw new NotImplementedException();
-        }
+        }  
     }
 }

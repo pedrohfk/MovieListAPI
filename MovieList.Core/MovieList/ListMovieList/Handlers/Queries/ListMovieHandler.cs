@@ -5,6 +5,7 @@ using MovieList.Persistencia;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace MovieList.Core.MovieList.ListMovieList.Handlers.Queries
 
         public async Task<IEnumerable<ViewModel.MovieList.MovieList>> Handle(ListMovieCommand request, CancellationToken cancellationToken)
         {
-            var result = await contextDb.MovieList.ToListAsync();
+            var result = await contextDb.MovieList.OrderBy(i => i.id).ToListAsync();
 
             return mapper.Map<List<ViewModel.MovieList.MovieList>>(result);
         }    
