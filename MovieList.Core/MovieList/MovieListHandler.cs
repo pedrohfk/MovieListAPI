@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using MovieList.Domain.Entities.IntervaloPremio;
 using MovieList.Persistencia;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -22,7 +21,6 @@ namespace MovieList.Core.MovieList
 
         public async Task<ViewModel.MovieList.IntervaloPremio.Main> Handle(MovieListCommand request, CancellationToken cancellationToken)
         {
-
             var produtorObteveDoisPremiosMaisRapido = await contextDb.Min.FromSqlRaw<Min>("" +
                     "SELECT id AS id, " +
                     "       MAX(ml.producers) AS producer, " +
@@ -43,30 +41,56 @@ namespace MovieList.Core.MovieList
                 followingWin = i.followingWin
             });
 
-
             var produtorMaiorIntervaloEntreDoisPremios = await contextDb.Max.FromSqlRaw(
-               "CREATE TEMP TABLE MAX AS " +
                 "SELECT MAX(id) AS id, " +
                 "       MAX(ml.producers) AS producer, " +
                 "       MAX(ml.year) - MIN(ml.year) AS interval, " +
                 "       MIN(ml.year) AS previousWin," +
                 "       MAX(ml.year) AS followingWin " +
                 "FROM 'MovieList' ml " +
-                "GROUP BY ml.producers " +
-                "HAVING MAX(ml.year) - MIN(ml.year) > 1; " +
-                "SELECT * FROM TEMP.MAX WHERE interval = (SELECT MAX(interval) FROM TEMP.MAX)" +
-                "").ToListAsync();
+                "WHERE ml.winner = 'yes' " +
+                "GROUP BY ml.producers ").ToListAsync();
 
+            int previousWin, followingWin, BiggerDiff, previousWin_aux, followingWin_aux = 0;
+            string producer, producer_biggerDiff = string.Empty;
+            List<ViewModel.MovieList.IntervaloPremio.Max> max = new List<ViewModel.MovieList.IntervaloPremio.Max>();
 
-            List<ViewModel.MovieList.IntervaloPremio.Max> max = produtorMaiorIntervaloEntreDoisPremios.ConvertAll(i => new ViewModel.MovieList.IntervaloPremio.Max
+            for (int x = 0; x < (produtorMaiorIntervaloEntreDoisPremios.Count() - 1); ++x)
             {
-                id = i.id,
-                producer = i.producer,
-                interval = i.interval,
-                previousWin = i.previousWin,
-                followingWin = i.followingWin
-            });
-        
+                BiggerDiff = 0;
+                previousWin_aux = 0;
+                followingWin = 0;
+                previousWin = produtorMaiorIntervaloEntreDoisPremios[x].previousWin;
+                producer = produtorMaiorIntervaloEntreDoisPremios[x].producer;
+
+                for (int y = x + 1; y < produtorMaiorIntervaloEntreDoisPremios.Count(); ++y)
+                {
+                    if (produtorMaiorIntervaloEntreDoisPremios[y].producer.Contains(producer) && produtorMaiorIntervaloEntreDoisPremios[y].followingWin != previousWin)
+                    {
+                        followingWin = produtorMaiorIntervaloEntreDoisPremios[y].followingWin;
+                    }
+
+                    int diff = (followingWin - previousWin);
+
+                    if (diff > BiggerDiff && diff != 0)
+                    {
+                        BiggerDiff = diff;
+                        producer_biggerDiff = producer;
+                        previousWin_aux = previousWin;
+                        followingWin_aux = followingWin;
+
+                        max.Add(new ViewModel.MovieList.IntervaloPremio.Max
+                        {
+                            producer = producer_biggerDiff,
+                            interval = BiggerDiff,
+                            followingWin = followingWin_aux,
+                            previousWin = previousWin_aux
+                        });      
+                    }
+
+                    max.RemoveAll(i => i.interval < BiggerDiff);
+                }
+            }
 
             var result = new ViewModel.MovieList.IntervaloPremio.Main
             {
